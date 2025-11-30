@@ -1,0 +1,64 @@
+rootProject.name = "ResidenceSync"
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
+    
+    repositories {
+        exclusiveContent {
+            forRepository {
+                maven {
+                    name = "SpigotMC Repository"
+                    url = uri("https://hub.spigotmc.org/groups/maven-public")
+                }
+            }
+            filter {
+                includeGroup("org.spigotmc")
+                includeGroup("net.md-5")
+            }
+        }
+        
+        exclusiveContent {
+            forRepository {
+                maven {
+                    name = "PaperMC Repository"
+                    url = uri("https://oss.sonatype.org/content/repositories/snapshots")
+                }
+            }
+            filter {
+                includeGroup("io.papermc.paper")
+            }
+        }
+        
+        exclusiveContent {
+            forRepository {
+                maven {
+                    name = "Sonatype OSS"
+                    url = uri("https://oss.sonatype.org/content/repositories/central")
+                }
+            }
+            filter {
+                includeGroup("org.yaml")
+                includeGroup("mysql")
+                includeGroup("com.google.code.gson")
+            }
+        }
+        
+        exclusiveContent {
+            forRepository {
+                maven {
+                    name = "EngineHub Repository"
+                    url = uri("https://maven.enginehub.org/repo/")
+                }
+            }
+            filter {
+                includeGroup("com.sk89q")
+            }
+        }
+        
+        mavenCentral()
+    }
+}
+
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.8.0"
+}

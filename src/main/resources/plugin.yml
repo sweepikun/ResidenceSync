@@ -1,0 +1,124 @@
+name: ResidenceSync
+version: '${version}'
+author: MiniMax Agent
+website: https://github.com/popcraft/ResidenceSync
+description: A plugin that enables cross-server residence functionality for the Residence plugin
+
+api-version: 1.19
+load: POSTWORLD
+
+main: cn.popcraft.residencesync.ResidenceSyncPlugin
+
+depend: [Residence]
+softdepend: [PlaceholderAPI]
+
+# 权限节点
+permissions:
+  residencesync.*:
+    description: 给予玩家所有ResidenceSync权限
+    children:
+      residencesync.admin: true
+      residencesync.tp: true
+      residencesync.force: true
+      residencesync.crossserver: true
+    default: op
+
+  residencesync.admin:
+    description: 管理员权限，可以执行所有ResidenceSync命令
+    default: op
+
+  residencesync.tp:
+    description: 允许使用跨服传送功能
+    default: true
+
+  residencesync.force:
+    description: 允许强制传送其他玩家的领地
+    children:
+      residencesync.force.tp: true
+      residencesync.force.admin: true
+    default: false
+
+  residencesync.force.tp:
+    description: 允许强制传送到任何领地
+    default: op
+
+  residencesync.force.admin:
+    description: 允许强制执行管理员操作
+    default: op
+
+  residencesync.crossserver:
+    description: 允许跨服务器操作
+    default: op
+
+  # 传送时间权限
+  residencesync.tp.default:
+    description: 默认传送时间权限
+    default: true
+
+  residencesync.tp.vip1:
+    description: VIP1传送时间权限（2秒延迟）
+    default: op
+
+  residencesync.tp.vip2:
+    description: VIP2传送时间权限（瞬传）
+    default: op
+
+  # 领地数量权限
+  residencesync.count.default:
+    description: 默认领地数量权限（3个领地）
+    default: true
+
+  residencesync.count.vip1:
+    description: VIP1领地数量权限（5个领地）
+    default: op
+
+  residencesync.count.vip2:
+    description: VIP2领地数量权限（10个领地）
+    default: op
+
+# 命令定义
+commands:
+  residencesync:
+    description: ResidenceSync管理员命令
+    usage: /residencesync <reload|rename|give|getuuid|save|info|help>
+    permission: residencesync.admin
+    permission-message: §c您没有权限使用此命令！
+    aliases: [rs, residencelink]
+    permission-default: op
+    executable-by: players
+    tab-completer: cn.popcraft.residencesync.commands.AdminTabCompleter
+    default: false
+
+  res:
+    description: Residence主命令（已拦截添加跨服功能）
+    usage: /res <tp|list|rename|give|remove> [参数...]
+    permission: residence.basic
+    permission-message: §c您没有权限使用此命令！
+    aliases: [residence]
+    permission-default: true
+    executable-by: players
+    tab-completer: cn.popcraft.residencesync.commands.ResidenceTabCompleter
+
+# 监听器
+listeners:
+  - cn.popcraft.residencesync.listener.PlayerListener
+  - cn.popcraft.residencesync.listener.ResidenceListener
+
+# 负载时序
+loadbefore:
+  - Residence
+
+# 配置文件
+config-file: config.yml
+message-files:
+  - message_zh.yml
+
+# 日志配置
+use-new-logging-api: true
+
+# 断线重连
+reconnect-backoff: 2000
+
+# 其他设置
+generate-plugins-folder: false
+use-native-java-timer: true

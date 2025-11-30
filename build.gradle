@@ -1,0 +1,183 @@
+plugins {
+    java
+    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("com.palantir.git-version") version "3.0.0"
+}
+
+group = "cn.popcraft"
+version = "1.0.0"
+
+java {
+    toolchain.languageVersion.set(17)
+    archivesBaseName.set("ResidenceSync")
+    mainClass.set("cn.popcraft.residencesync.ResidenceSyncPlugin")
+}
+
+// 使用现代的配置缓存
+tasks.withType<JavaCompile>().configureEach {
+    options.encoding = "UTF-8"
+}
+
+tasks.withType<Javadoc>().configureEach {
+    options.encoding = "UTF-8"
+}
+
+tasks.withType<Test> {
+    systemProperty("file.encoding", "UTF-8")
+}
+
+tasks.withType<JavaExec> {
+    systemProperty("file.encoding", "UTF-8")
+}
+
+// 现代化仓库配置
+repositories {
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = "SpigotMC Repository"
+                url = uri("https://hub.spigotmc.org/groups/maven-public")
+            }
+        }
+        filter {
+            includeGroup("org.spigotmc")
+            includeGroup("net.md-5")
+        }
+    }
+    
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = "PaperMC Repository"
+                url = uri("https://oss.sonatype.org/content/repositories/snapshots")
+            }
+        }
+        filter {
+            includeGroup("io.papermc.paper")
+        }
+    }
+    
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = "Sonatype OSS"
+                url = uri("https://oss.sonatype.org/content/repositories/central")
+            }
+        }
+        filter {
+            includeGroup("org.yaml")
+            includeGroup("mysql")
+            includeGroup("com.google.code.gson")
+        }
+    }
+    
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = "EngineHub Repository"
+                url = uri("https://maven.enginehub.org/repo/")
+            }
+        }
+        filter {
+            includeGroup("com.sk89q")
+        }
+    }
+    
+    mavenCentral()
+}
+
+// 现代化依赖配置
+dependencies {
+    testImplementation("io.papermc.paper:paper-api:1.19.3-R0.1-SNAPSHOT")
+    
+    // Spigot API
+    compileOnly("org.spigotmc:spigot-api:1.19.3-R0.1-SNAPSHOT")
+    
+    // Residence Plugin
+    compileOnly("com.bekvon:residence:5.1-SNAPSHOT")
+    
+    // Database
+    compileOnly("mysql:mysql-connector-java:8.0.33")
+    
+    // HikariCP for connection pooling
+    implementation("com.zaxxer:HikariCP:5.0.1")
+    
+    // BungeeCord API
+    compileOnly("net.md-5:bungeecord-api:1.19-R0.1-SNAPSHOT")
+    
+    // PlaceholderAPI
+    compileOnly("me.clip:placeholderapi:2.11.2")
+    
+    // Yaml parsing
+    implementation("org.yaml:snakeyaml:2.0")
+    
+    // Logging
+    compileOnly("org.slf4j:slf4j-api:2.0.7")
+    compileOnly("org.apache.logging.log4j:log4j-core:2.19.0")
+    compileOnly("org.apache.logging.log4j:log4j-slf4j2-impl:2.19.0")
+    
+    // JSON handling
+    implementation("com.google.code.gson:gson:2.10.1")
+    
+    // Bukkit/Spigot Scheduler
+    implementation("org.spigotmc:spigot:1.19.3-R0.1-SNAPSHOT")
+}
+
+// 现代化 shadowJar 配置
+tasks.shadowJar {
+    archiveBaseName.set(project.name)
+    archiveClassifier.set("")
+    archiveVersion.set("")
+
+    relocate("org.yaml", "cn.popcraft.residencesync.libs.org.yaml")
+    relocate("com.google.gson", "cn.popcraft.residencesync.libs.com.google.gson")
+    relocate("com.zaxxer.hikari", "cn.popcraft.residencesync.libs.com.zaxxer.hikari")
+}
+
+// 现代化 Jar 配置
+tasks.jar {
+    manifest {
+        attributes(
+            "Main-Class" to "cn.popcraft.residencesync.ResidenceSyncPlugin",
+            "Implementation-Title" to project.name,
+            "Implementation-Version" to version,
+            "Implementation-Vendor" to "MiniMax Agent"
+        )
+    }
+}
+
+// Gradle 9.2 配置缓存支持
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
+    // 配置缓存兼容性
+    systemProperty("org.gradle.jvmargs", "-Xmx2g")
+}
+
+// 构建配置
+ext {
+    set("skipSigning", true)
+}
+
+// 自定义任务
+tasks.register<Copy>("copyResources") {
+    from("src/main/resources")
+    into("build/resources/main")
+}
+
+// 依赖排序
+tasks.assemble {
+    dependsOn("shadowJar")
+}
+
+// 质量检查任务
+tasks.register("qualityCheck") {
+    dependsOn("check", "test", "shadowJar")
+}
+
+// 清理任务增强
+tasks.clean {
+    delete("build/classes")
+    delete("build/dependency-cache")
+    delete("build/test-results")
+    delete("build/tmp")
+}
